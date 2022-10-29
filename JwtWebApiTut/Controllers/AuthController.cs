@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
@@ -15,9 +16,28 @@ namespace JwtWebApiTut.Controllers
         public static User user = new User();
         private readonly IConfiguration _configuration;
 
-        public AuthController(IConfiguration configuration)
+        private readonly IUserService _userService; //ovako se assignuje context u controller
+        //mora i u ctor
+        public AuthController(IConfiguration configuration, IUserService userService)
         {
             _configuration = configuration;
+            _userService = userService;
+        }
+
+        [HttpGet, Authorize]
+        public ActionResult<string> GetMe()//sluzi za citanje claim-a 
+        {
+            var userName = _userService.GetMyName();
+            return Ok(userName);
+
+
+            //var userName = User?.Identity?.Name;
+            //var userName2 = User.FindFirstValue(ClaimTypes.Name);
+            //var role = User.FindFirstValue(ClaimTypes.Role);
+
+            //ovo je nacin preko kojeg ne uzimamo context nego radimo mehanicki
+
+            //return Ok(new {userName, userName2 ,role});
         }
 
         [HttpPost("register")]
@@ -52,7 +72,12 @@ namespace JwtWebApiTut.Controllers
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Username)
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, "Admin")
+
+                //ovo drugo je za role i dodaje se isto
+                //u weatherForecastController kod authorise da se stavlja koji role moze da pristupi
+                /*new Claim(ClaimTypes.Role, "Admin")*///ovako se daje nekome admin
             };
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));

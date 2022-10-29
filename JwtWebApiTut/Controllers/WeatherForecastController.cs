@@ -20,7 +20,7 @@ namespace JwtWebApiTut.Controllers
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetWeatherForecast"), Authorize]//AllowAnonymous
+        [HttpGet(Name = "GetWeatherForecast"), Authorize(Roles = "Admin")]//AllowAnonymous
                                                          //ovo je kad ne moras da si registrovan da bi ovo koristio
 
         public IEnumerable<WeatherForecast> Get()
